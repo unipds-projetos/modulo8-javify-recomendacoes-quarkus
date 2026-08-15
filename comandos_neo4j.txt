@@ -1,0 +1,58 @@
+CREATE
+  // 1. Criando os Nós de Usuários (id: Long vindo do PostgreSQL)
+  (joao:Usuario {id: 1, nome: 'João', email: 'joao@javify.com'}),
+  (maria:Usuario {id: 2, nome: 'Maria', email: 'maria@javify.com'}),
+  (pedro:Usuario {id: 3, nome: 'Pedro', email: 'pedro@javify.com'}),
+  (ana:Usuario {id: 4, nome: 'Ana', email: 'ana@javify.com'}),
+
+  // 2. Criando os Nós de Artistas (id: String vindo do MongoDB)
+  (pinkFloyd:Artista {id: '6a21fda5c386542b4fd1a801', nome: 'Pink Floyd'}),
+  (ledZeppelin:Artista {id: '6a21fda5c386542b4fd1a802', nome: 'Led Zeppelin'}),
+  (beatles:Artista {id: '6a21fda5c386542b4fd1a803', nome: 'The Beatles'}),
+  (ironMaiden:Artista {id: '6a21fda5c386542b4fd1a804', nome: 'Iron Maiden'}),
+
+  // 3. Criando a Rede Social
+  (joao)-[:SEGUE]->(maria),
+  (joao)-[:SEGUE]->(pedro),
+  (maria)-[:SEGUE]->(ana),
+
+  // 4. Criando o Histórico Musical
+  (maria)-[:OUVE {vezes_tocadas: 50}]->(pinkFloyd),
+  (maria)-[:OUVE {vezes_tocadas: 120}]->(ledZeppelin),
+  (pedro)-[:OUVE {vezes_tocadas: 30}]->(pinkFloyd),
+  (pedro)-[:OUVE {vezes_tocadas: 80}]->(beatles),
+  (ana)-[:OUVE {vezes_tocadas: 200}]->(ironMaiden)
+
+
+MATCH (n) RETURN n LIMIT 25;
+
+MATCH (n:Artista) RETURN n LIMIT 25;
+
+MATCH p=()-[]->() RETURN p LIMIT 25;
+
+MATCH ()-[r:SEGUE]->()
+DELETE r
+
+MATCH (n: Artista)
+DELETE n
+
+MATCH (joao:Usuario {nome: 'João'})
+RETURN joao;
+
+MATCH (joao:Usuario {nome: 'João'})-[:SEGUE]->(amigo:Usuario)
+RETURN amigo;
+
+MATCH (joao:Usuario {nome: 'João'})-[:SEGUE]->(amigo:Usuario)-[:OUVE]->(artista:Artista)
+RETURN artista;
+
+
+// Exclui bandas que o João já ouve (Iron Maiden)
+MATCH (joao:Usuario {nome: 'João'})-[:SEGUE]->(amigo:Usuario)-[:OUVE]->(artista:Artista)
+WHERE NOT (joao)-[:OUVE]->(artista)
+RETURN artista;
+
+MATCH (joao:Usuario {nome: 'João'})-[:SEGUE]->(amigo:Usuario)-[:OUVE]->(artista:Artista)
+WHERE NOT (joao)-[:OUVE]->(artista)
+RETURN artista.nome, COUNT(amigo) AS forca_recomendacao
+ORDER BY forca_recomendacao DESC
+LIMIT 5;
